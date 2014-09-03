@@ -27,6 +27,8 @@ docker rm ${ID}
 # Finally build the release image
 #
 
-docker build -t anchor/vaultaire:release --rm release
+docker build -t anchor/vaultaire:2.5.0 --rm release
+if [ $? -ne 0 ] ; then exit ; fi
 rm -r release/bin/
+docker tag anchor/vaultaire:2.5.0 anchor/vaultare:latest
 
