@@ -1,5 +1,32 @@
+#
+# Build and cache project dependencies
+#
+
 docker build -t anchor/vaultaire:dependencies --rm dependencies
 if [ $? -ne 0 ] ; then exit ; fi
 
+#
+# Build actual binaries. This could be updated to use a locally up to date
+# tree rather than pulling from Gitub, but that requires finding a valid way
+# to inject said current sources.
+#
+
 docker build -t anchor/vaultaire:application --rm application
+if [ $? -ne 0 ] ; then exit ; fi
+
+#
+# Extract the binary artifacts
+#
+
+docker run -t anchor/vaultaire:application true
+ID=`docker ps -q -l`
+docker cp ${ID}:/.cabal/bin/ release
+docker rm ${ID}
+
+#
+# Finally build the release image
+#
+
+docker build -t anchor/vaultaire:release --rm release
+rm -r release/bin/
 
