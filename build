@@ -1,0 +1,5 @@
+docker build -t anchor/vaultaire:dependencies --rm dependencies
+if [ $? -ne 0 ] ; then exit ; fi
+
+docker build -t anchor/vaultaire:application --rm application
+
