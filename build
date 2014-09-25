@@ -2,7 +2,9 @@
 # Build and cache project dependencies
 #
 
-docker build -t anchor/vaultaire:dependencies --rm dependencies
+docker pull anchor.private/afcowie/haskell:latest
+
+docker build -t anchor.private/engineering/vaultaire:dependencies --rm dependencies
 if [ $? -ne 0 ] ; then exit ; fi
 
 #
@@ -11,14 +13,14 @@ if [ $? -ne 0 ] ; then exit ; fi
 # to inject said current sources.
 #
 
-docker build -t anchor/vaultaire:application --rm application
+docker build -t anchor.private/engineering/vaultaire:application --rm application
 if [ $? -ne 0 ] ; then exit ; fi
 
 #
 # Extract the binary artifacts
 #
 
-docker run -t anchor/vaultaire:application true
+docker run -t anchor.private/engineering/vaultaire:application true
 ID=`docker ps -q -l`
 docker cp ${ID}:/.cabal/bin/ release
 docker rm ${ID}
@@ -27,8 +29,11 @@ docker rm ${ID}
 # Finally build the release image
 #
 
-docker build -t anchor/vaultaire:2.5.0 --rm release
+docker build -t anchor.private/engineering/vaultaire:2.5.1 --rm release
 if [ $? -ne 0 ] ; then exit ; fi
 rm -r release/bin/
-docker tag anchor/vaultaire:2.5.0 anchor/vaultare:latest
+
+docker tag anchor.private/engineering/vaultaire:2.5.1 anchor.private/engineering/vaultaire:latest
+docker push anchor.private/engineering/vaultaire:2.5.1
+docker push anchor.private/engineering/vaultaire:latest
 

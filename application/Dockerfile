@@ -1,4 +1,4 @@
-FROM anchor/vaultaire:dependencies
+FROM anchor.private/engineering/vaultaire:dependencies
 MAINTAINER engineering@anchor.com.au
 
 WORKDIR /src/vaultaire-common
@@ -11,6 +11,6 @@ WORKDIR /src/vaultaire
 RUN git pull
 
 WORKDIR /
-RUN cabal install -j4 \
+RUN cabal install -j \
 	/src/vaultaire-common /src/marquise /src/vaultaire
 
