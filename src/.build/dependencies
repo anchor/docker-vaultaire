@@ -16,9 +16,6 @@ export HOME=/src
 export PATH=/src/.cabal/bin:$PATH
 cabal update
 
-apt-get install ca-certificates git
-apt-get install librados-dev libzmq3-dev pkg-config
-
 cd /src
 get vaultaire-common
 get marquise

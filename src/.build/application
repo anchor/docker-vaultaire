@@ -1,16 +1,8 @@
 #!/bin/sh
+set -x
 set -e
 
 export HOME=/src
-
-cd vaultaire-common
-git pull
-
-cd marquise
-git pull
-
-cd vaultaire
-git pull
 
 cabal install -j \
 	/src/vaultaire-common \

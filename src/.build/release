@@ -1,0 +1,8 @@
+#!/bin/sh
+set -x
+set -e
+
+apt-get update
+apt-get install librados2 libzmq3
+
+cp /src/.cabal/bin/* /usr/local/bin
