@@ -3,15 +3,12 @@ set -x
 set -e
 
 #
-# Build and cache project dependencies
-#
-
-#FIXME ENABLE
-#docker pull anchor.private/afcowie/haskell:latest
-
-#
 # Copy in any changes to our build infrastructure
 #
+
+if [ ! -d tmp ] ; then
+	mkdir tmp
+fi
 
 rsync -a src/ cache
 
@@ -19,45 +16,86 @@ rsync -a src/ cache
 # Install a base system
 #
 
-docker run -t -v ${PWD}/cache:/src:rw anchor.private/afcowie/haskell /src/.build/baseline
-ID=`docker ps -q -l`
-docker commit ${ID} anchor.private/engineering/vaultaire:baseline
-docker rm ${ID}
+initialize () {
+	if [ -f tmp/initialize ] ; then
+		return
+	fi
+	docker pull anchor.private/afcowie/debian:jessie
+	docker pull anchor.private/afcowie/haskell:latest
+	touch tmp/initialize
+}
+
+
+baseline () {
+	if [ tmp/baseline -nt tmp/initalize ] ; then
+		return
+	fi
+	docker run -t -v ${PWD}/cache:/src:rw anchor.private/afcowie/haskell /src/.build/baseline
+	ID=`docker ps -q -l`
+	docker commit ${ID} anchor.private/engineering/vaultaire:baseline
+	docker rm ${ID}
+	touch tmp/baseline
+}
 
 
 #
 # Update (or initally clone) source code and build dependencies in volume
 #
 
-docker run -t -v ${PWD}/cache:/src:rw anchor.private/engineering/vaultaire:baseline /src/.build/dependencies
-ID=`docker ps -q -l`
-docker commit ${ID} anchor.private/engineering/vaultaire:dependencies
-#FIXME ENABLE
-#docker rm ${ID}
-
+dependencies () {
+	if [ tmp/dependencies -nt tmp/baseline ] ; then
+		return
+	fi
+	docker run -t -v ${PWD}/cache:/src:rw anchor.private/engineering/vaultaire:baseline /src/.build/dependencies
+	ID=`docker ps -q -l`
+	docker commit ${ID} anchor.private/engineering/vaultaire:dependencies
+	docker rm ${ID}
+	touch tmp/dependencies
+}
 
 #
 # Build actual binaries.
 #
 
-docker run -t -v ${PWD}/cache:/src:rw anchor.private/engineering/vaultaire:dependencies /src/.build/application
-ID=`docker ps -q -l`
-
-# FIXME TEMPORARY?
-docker commit ${ID} anchor.private/engineering/vaultaire:application
-#FIXME ENABLE
-#docker rm ${ID}
+application () {
+	if [ tmp/application -nt tmp/dependencies ] ; then
+		return
+	fi
+	docker run -t -v ${PWD}/cache:/src:rw anchor.private/engineering/vaultaire:dependencies /src/.build/application
+	ID=`docker ps -q -l`
+	docker commit ${ID} anchor.private/engineering/vaultaire:application
+	docker rm ${ID}
+	touch tmp/application
+}
 
 #
 # Extract the binary artifacts
 #
 
-docker run -t -v ${PWD}/cache:/src:ro anchor.private/afcowie/debian:jessie /src/.build/release
-ID=`docker ps -q -l`
-docker commit ${ID} anchor.private/engineering/vaultaire:2.5.1
-docker rm ${ID}
+release () {
+	if [ tmp/release -nt tmp/application ] ; then
+		return
+	fi
+	docker run -t -v ${PWD}/cache:/src:ro anchor.private/afcowie/debian:jessie /src/.build/release
+	ID=`docker ps -q -l`
+	docker commit ${ID} anchor.private/engineering/vaultaire:2.5.1
+	docker rm ${ID}
+	touch tmp/release
+}
 
-docker tag anchor.private/engineering/vaultaire:2.5.1 anchor.private/engineering/vaultaire:latest
-docker push anchor.private/engineering/vaultaire:2.5.1
-docker push anchor.private/engineering/vaultaire:latest
+publish () {
+	if [ tmp/publish -nt tmp/release ] ; then
+		return
+	fi
+	docker tag anchor.private/engineering/vaultaire:2.5.1 anchor.private/engineering/vaultaire:latest
+	docker push anchor.private/engineering/vaultaire:2.5.1
+	docker push anchor.private/engineering/vaultaire:latest
+	touch tmp/publish
+}
 
+initialize
+baseline
+dependencies
+application
+release
+publish
