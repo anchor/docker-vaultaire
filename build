@@ -1,11 +1,25 @@
+#!/bin/sh
+set -x
+set -e
 #
 # Build and cache project dependencies
 #
 
-docker pull anchor.private/afcowie/haskell:latest
+#FIXME ENABLE
+#docker pull anchor.private/afcowie/haskell:latest
 
-docker build -t anchor.private/engineering/vaultaire:dependencies --rm dependencies
-if [ $? -ne 0 ] ; then exit ; fi
+#
+# Copy in any changes to our build infrastructure
+#
+
+rsync -a src/ cache
+
+docker run -t -v ${PWD}/cache:/src:rw anchor.private/afcowie/haskell /src/.build/dependencies
+ID=`docker ps -q -l`
+docker commit ${ID} anchor.private/engineering/vaultaire:dependencies
+#FIXME ENABLE
+#docker rm ${ID}
+
 
 #
 # Build actual binaries. This could be updated to use a locally up to date
@@ -13,24 +27,26 @@ if [ $? -ne 0 ] ; then exit ; fi
 # to inject said current sources.
 #
 
-docker build -t anchor.private/engineering/vaultaire:application --rm application
-if [ $? -ne 0 ] ; then exit ; fi
+docker run -t -v ${PWD}/cache:/src:rw anchor.private/engineering/vaultaire:dependencies /src/.build/application
+ID=`docker ps -q -l`
+
+# FIXME TEMPORARY?
+docker commit ${ID} anchor.private/engineering/vaultaire:application
+#FIXME ENABLE
+#docker rm ${ID}
 
 #
 # Extract the binary artifacts
 #
 
-docker run -t anchor.private/engineering/vaultaire:application true
-ID=`docker ps -q -l`
-docker cp ${ID}:/.cabal/bin/ release
-docker rm ${ID}
+rsync -av /cache/.cabal/bin release
 
 #
 # Finally build the release image
 #
+# TODO replace with /src/.build/release
 
 docker build -t anchor.private/engineering/vaultaire:2.5.1 --rm release
-if [ $? -ne 0 ] ; then exit ; fi
 rm -r release/bin/
 
 docker tag anchor.private/engineering/vaultaire:2.5.1 anchor.private/engineering/vaultaire:latest
