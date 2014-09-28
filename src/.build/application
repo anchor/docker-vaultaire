@@ -1,0 +1,11 @@
+#!/bin/sh
+set -x
+set -e
+
+export HOME=/src
+
+cabal install \
+	/src/vaultaire-common \
+	/src/marquise \
+	/src/vaultaire
+
