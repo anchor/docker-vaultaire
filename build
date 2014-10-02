@@ -6,35 +6,32 @@ set -e
 # Copy in any changes to our build infrastructure
 #
 
-if [ ! -d tmp ] ; then
-	mkdir tmp
-fi
-
 rsync -a src/ cache
+mkdir cache/.stamp
 
 #
 # Install a base system
 #
 
 initialize () {
-	if [ -f tmp/initialize ] ; then
+	if [ -f cache/.stamp/initialize ] ; then
 		return
 	fi
 	docker pull anchor.private/afcowie/debian:jessie
 	docker pull anchor.private/afcowie/haskell:latest
-	touch tmp/initialize
+	touch cache/.stamp/initialize
 }
 
 
 baseline () {
-	if [ tmp/baseline -nt tmp/initalize ] ; then
+	if [ cache/.stamp/baseline -nt cache/.stamp/initalize ] ; then
 		return
 	fi
 	docker run -t -v ${PWD}/cache:/src:rw anchor.private/afcowie/haskell /src/.build/baseline
 	ID=`docker ps -q -l`
 	docker commit ${ID} anchor.private/engineering/vaultaire:baseline
 	docker rm ${ID}
-	touch tmp/baseline
+	touch cache/.stamp/baseline
 }
 
 
@@ -43,14 +40,14 @@ baseline () {
 #
 
 dependencies () {
-	if [ tmp/dependencies -nt tmp/baseline ] ; then
+	if [ cache/.stamp/dependencies -nt cache/.stamp/baseline ] ; then
 		return
 	fi
 	docker run -t -v ${PWD}/cache:/src:rw anchor.private/engineering/vaultaire:baseline /src/.build/dependencies
 	ID=`docker ps -q -l`
 	docker commit ${ID} anchor.private/engineering/vaultaire:dependencies
 	docker rm ${ID}
-	touch tmp/dependencies
+	touch cache/.stamp/dependencies
 }
 
 #
@@ -58,14 +55,14 @@ dependencies () {
 #
 
 application () {
-	if [ tmp/application -nt tmp/dependencies ] ; then
+	if [ cache/.stamp/application -nt cache/.stamp/dependencies ] ; then
 		return
 	fi
 	docker run -t -v ${PWD}/cache:/src:rw anchor.private/engineering/vaultaire:dependencies /src/.build/application
 	ID=`docker ps -q -l`
 	docker commit ${ID} anchor.private/engineering/vaultaire:application
 	docker rm ${ID}
-	touch tmp/application
+	touch cache/.stamp/application
 }
 
 #
@@ -73,24 +70,24 @@ application () {
 #
 
 release () {
-	if [ tmp/release -nt tmp/application ] ; then
+	if [ cache/.stamp/release -nt cache/.stamp/application ] ; then
 		return
 	fi
 	docker run -t -v ${PWD}/cache:/src:ro anchor.private/afcowie/debian:jessie /src/.build/release
 	ID=`docker ps -q -l`
 	docker commit ${ID} anchor.private/engineering/vaultaire:2.5.1
 	docker rm ${ID}
-	touch tmp/release
+	touch cache/.stamp/release
 }
 
 publish () {
-	if [ tmp/publish -nt tmp/release ] ; then
+	if [ cache/.stamp/publish -nt cache/.stamp/release ] ; then
 		return
 	fi
 	docker tag anchor.private/engineering/vaultaire:2.5.1 anchor.private/engineering/vaultaire:latest
 	docker push anchor.private/engineering/vaultaire:2.5.1
 	docker push anchor.private/engineering/vaultaire:latest
-	touch tmp/publish
+	touch cache/.stamp/publish
 }
 
 initialize
