@@ -7,7 +7,6 @@ set -e
 #
 
 rsync -a src/ cache
-mkdir cache/.stamp
 
 #
 # Install a base system
