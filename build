@@ -23,7 +23,7 @@ initialize () {
 
 
 baseline () {
-	if [ cache/.stamp/baseline -nt cache/.stamp/initalize ] ; then
+	if [ cache/.stamp/baseline -nt cache/.stamp/initialize ] ; then
 		return
 	fi
 	docker run -t -v ${PWD}/cache:/src:rw anchor.private/afcowie/haskell /src/.build/baseline
@@ -74,7 +74,7 @@ release () {
 	fi
 	docker run -t -v ${PWD}/cache:/src:ro anchor.private/afcowie/debian:jessie /src/.build/release
 	ID=`docker ps -q -l`
-	docker commit ${ID} anchor.private/engineering/vaultaire:2.5.1
+	docker commit ${ID} anchor.private/engineering/vaultaire:2.5.4
 	docker rm ${ID}
 	touch cache/.stamp/release
 }
@@ -83,8 +83,8 @@ publish () {
 	if [ cache/.stamp/publish -nt cache/.stamp/release ] ; then
 		return
 	fi
-	docker tag anchor.private/engineering/vaultaire:2.5.1 anchor.private/engineering/vaultaire:latest
-	docker push anchor.private/engineering/vaultaire:2.5.1
+	docker tag anchor.private/engineering/vaultaire:2.5.4 anchor.private/engineering/vaultaire:latest
+	docker push anchor.private/engineering/vaultaire:2.5.4
 	docker push anchor.private/engineering/vaultaire:latest
 	touch cache/.stamp/publish
 }

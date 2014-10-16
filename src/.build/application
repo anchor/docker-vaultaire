@@ -3,8 +3,9 @@ set -x
 set -e
 
 export HOME=/src
+export PATH=/src/.cabal/bin:$PATH
 
-cabal install \
+cabal install --force-reinstalls \
 	/src/vaultaire-common \
 	/src/marquise \
 	/src/vaultaire
