@@ -50,31 +50,16 @@ dependencies () {
 }
 
 #
-# Build actual binaries.
-#
-
-application () {
-	if [ cache/.stamp/application -nt cache/.stamp/dependencies ] ; then
-		return
-	fi
-	docker run -t -v ${PWD}/cache:/src:rw anchor.private/engineering/vaultaire:dependencies /src/.build/application
-	ID=`docker ps -q -l`
-	docker commit ${ID} anchor.private/engineering/vaultaire:application
-	docker rm ${ID}
-	touch cache/.stamp/application
-}
-
-#
 # Extract the binary artifacts
 #
 
 release () {
-	if [ cache/.stamp/release -nt cache/.stamp/application ] ; then
+	if [ cache/.stamp/release -nt cache/.stamp/dependenices ] ; then
 		return
 	fi
 	docker run -t -v ${PWD}/cache:/src:ro anchor.private/afcowie/debian:jessie /src/.build/release
 	ID=`docker ps -q -l`
-	docker commit ${ID} anchor.private/engineering/vaultaire:2.5.4
+	docker commit ${ID} anchor.private/engineering/vaultaire:2.5.7
 	docker rm ${ID}
 	touch cache/.stamp/release
 }
@@ -83,8 +68,8 @@ publish () {
 	if [ cache/.stamp/publish -nt cache/.stamp/release ] ; then
 		return
 	fi
-	docker tag anchor.private/engineering/vaultaire:2.5.4 anchor.private/engineering/vaultaire:latest
-	docker push anchor.private/engineering/vaultaire:2.5.4
+	docker tag anchor.private/engineering/vaultaire:2.5.7 anchor.private/engineering/vaultaire:latest
+	docker push anchor.private/engineering/vaultaire:2.5.7
 	docker push anchor.private/engineering/vaultaire:latest
 	touch cache/.stamp/publish
 }
@@ -92,6 +77,5 @@ publish () {
 initialize
 baseline
 dependencies
-application
 release
 publish

@@ -22,7 +22,7 @@ get marquise
 get vaultaire
 
 cd /
-cabal install -j --only-dependencies \
+cabal install -j \
 	/src/vaultaire-common \
 	/src/marquise \
 	/src/vaultaire
