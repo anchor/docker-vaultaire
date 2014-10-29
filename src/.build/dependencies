@@ -17,12 +17,14 @@ export PATH=/src/.cabal/bin:$PATH
 cabal update
 
 cd /src
+get rados-haskell
 get vaultaire-common
 get marquise
 get vaultaire
 
 cd /
 cabal install -j \
+	/src/rados-haskell \
 	/src/vaultaire-common \
 	/src/marquise \
 	/src/vaultaire
