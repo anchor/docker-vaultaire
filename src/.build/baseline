@@ -2,7 +2,11 @@
 set -x
 set -e
 
+export HOME=/src
+export PATH=/src/.cabal/bin:$PATH
+
 apt-get update
 apt-get install ca-certificates git
 apt-get install librados-dev libzmq3-dev pkg-config
 
+cabal update

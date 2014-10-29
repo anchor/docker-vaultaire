@@ -14,7 +14,6 @@ get () {
 
 export HOME=/src
 export PATH=/src/.cabal/bin:$PATH
-cabal update
 
 cd /src
 get rados-haskell
