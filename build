@@ -16,8 +16,8 @@ initialize () {
 	if [ -f cache/.stamp/initialize ] ; then
 		return
 	fi
-	docker pull anchor.private/afcowie/debian:jessie
-	docker pull anchor.private/afcowie/haskell:latest
+	docker pull registry.anchor.net.au/afcowie/debian:jessie
+	docker pull registry.anchor.net.au/afcowie/haskell:latest
 	touch cache/.stamp/initialize
 }
 
@@ -26,9 +26,9 @@ baseline () {
 	if [ cache/.stamp/baseline -nt cache/.stamp/initialize ] ; then
 		return
 	fi
-	docker run -t -v ${PWD}/cache:/src:rw anchor.private/afcowie/haskell /src/.build/baseline
+	docker run -t -v ${PWD}/cache:/src:rw registry.anchor.net.au/afcowie/haskell /src/.build/baseline
 	ID=`docker ps -q -l`
-	docker commit ${ID} anchor.private/engineering/vaultaire:baseline
+	docker commit ${ID} registry.anchor.net.au/engineering/vaultaire:baseline
 	docker rm ${ID}
 	touch cache/.stamp/baseline
 }
@@ -42,9 +42,9 @@ dependencies () {
 	if [ cache/.stamp/dependencies -nt cache/.stamp/baseline ] ; then
 		return
 	fi
-	docker run -t -v ${PWD}/cache:/src:rw anchor.private/engineering/vaultaire:baseline /src/.build/dependencies
+	docker run -t -v ${PWD}/cache:/src:rw registry.anchor.net.au/engineering/vaultaire:baseline /src/.build/dependencies
 	ID=`docker ps -q -l`
-	docker commit ${ID} anchor.private/engineering/vaultaire:dependencies
+	docker commit ${ID} registry.anchor.net.au/engineering/vaultaire:dependencies
 	docker rm ${ID}
 	touch cache/.stamp/dependencies
 }
@@ -54,12 +54,12 @@ dependencies () {
 #
 
 release () {
-	if [ cache/.stamp/release -nt cache/.stamp/dependenices ] ; then
+	if [ cache/.stamp/release -nt cache/.stamp/dependencies ] ; then
 		return
 	fi
-	docker run -t -v ${PWD}/cache:/src:ro anchor.private/afcowie/debian:jessie /src/.build/release
+	docker run -t -v ${PWD}/cache:/src:ro registry.anchor.net.au/afcowie/debian:jessie /src/.build/release
 	ID=`docker ps -q -l`
-	docker commit ${ID} anchor.private/engineering/vaultaire:2.6.0
+	docker commit ${ID} registry.anchor.net.au/engineering/vaultaire:2.6.1b
 	docker rm ${ID}
 	touch cache/.stamp/release
 }
@@ -68,9 +68,9 @@ publish () {
 	if [ cache/.stamp/publish -nt cache/.stamp/release ] ; then
 		return
 	fi
-	docker tag anchor.private/engineering/vaultaire:2.6.0 anchor.private/engineering/vaultaire:latest
-	docker push anchor.private/engineering/vaultaire:2.6.0
-	docker push anchor.private/engineering/vaultaire:latest
+	docker tag registry.anchor.net.au/engineering/vaultaire:2.6.1b registry.anchor.net.au/engineering/vaultaire:latest
+	docker push registry.anchor.net.au/engineering/vaultaire:2.6.1b
+ 	docker push registry.anchor.net.au/engineering/vaultaire:latest
 	touch cache/.stamp/publish
 }
 

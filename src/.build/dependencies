@@ -22,7 +22,7 @@ get marquise
 get vaultaire
 
 cd /
-cabal install -j \
+cabal install -j --force-reinstalls \
 	/src/rados-haskell \
 	/src/vaultaire-common \
 	/src/marquise \
